@@ -1,0 +1,2 @@
+# scan port 21 (ftp)
+for i in {86..255}; do sudo zmap -p 21 -r 0 -o results_p21_ip$i.csv $i.0.0.0/8; done
