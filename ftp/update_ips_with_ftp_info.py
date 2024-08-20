@@ -7,6 +7,12 @@ import os
 
 from ftplib import FTP
 
+def opt_quit(ftp):
+    try:
+        ftp.quit()
+    except:
+        print("Quit error.")
+
 list = ""
 def list_callback(line):
 	global list
@@ -26,13 +32,20 @@ def check_single_ip(cur, ip):
 		cur.execute("update ftp set anon=-2 where ip={};".format(int(ip)))
 		con.commit()
 		print("Login failed unexpectedly.")
-		ftp.quit()
+		opt_quit(ftp)
 		return
 	# positive response for anonymous credentials
 	if ret[0] == '2':
 		global list
 		list = ""
-		ftp.retrlines("LIST", callback=list_callback)
+		try:
+			ftp.retrlines("LIST", callback=list_callback)
+		except:
+			cur.execute("update ftp set anon=-3 where ip={};".format(int(ip)))
+			con.commit()
+			print("Cannot retrieve root directory listing.")
+			opt_quit(ftp)
+			return
 		with open("listing_" + str(ip) + ".txt", "w") as f:
 			f.write(list)
 		cur.execute("update ftp set anon=1 where ip={};".format(int(ip)))
@@ -42,7 +55,7 @@ def check_single_ip(cur, ip):
 		cur.execute("update ftp set anon=0 where ip={};".format(int(ip)))
 		con.commit()
 		print("No anonymous access.")
-	ftp.quit()
+	opt_quit(ftp)
 
 if len(sys.argv) != 2:
 	print("Syntax: {} <db file>".format(sys.argv[0]))
