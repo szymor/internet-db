@@ -7,6 +7,34 @@ import os
 
 from datetime import datetime
 
+header_template = """
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<title>Not a Miyoo site - {title}</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<h1 style="text-align: center;">{title}</h1>
+<hr>
+<nav style="text-align: center;">
+{left} |
+<a href="/">Back to Home</a> |
+{right}
+</nav>
+<hr>
+"""
+
+footer_template = """
+<hr>
+<footer>
+<p style="text-align: center;">by vamastah, generated on {dt}</p>
+</footer>
+</body>
+</html>
+"""
+
 if len(sys.argv) != 3:
 	print("Syntax: {} <db file> <out dir>".format(sys.argv[0]))
 	exit(1)
@@ -30,8 +58,7 @@ pages = [records[i*pagesize : (i+1)*pagesize] for i in range((len(records) + pag
 ep = enumerate(pages)
 for p in ep:
 	with open("{}/ftp_{}.html".format(sys.argv[2], p[0]), "w") as f:
-		f.write('<!DOCTYPE html><html lang="en-US"><head><title>FTP Server List {}/{}</title><meta charset="utf-8"><link rel="stylesheet" href="style.css"></head>'.format(p[0] + 1, len(pages)))
-		f.write('<body>')
+		title = "FTP Server List {}/{}".format(p[0] + 1, len(pages))
 
 		if p[0] > 0:
 			left = '<a href="ftp_{}.html">&lt;&lt;</a>'.format(p[0] - 1)
@@ -42,7 +69,9 @@ for p in ep:
 		else:
 			right = '&gt;&gt;'
 
-		f.write('<table><caption>{} FTP Server List, page {}/{} {}</caption>'.format(left, p[0] + 1, len(pages), right))
+		f.write(header_template.format(title=title, left=left, right=right))
+
+		f.write('<table>')
 		f.write('<tr><th>No.</th><th>IP address</th><th>Anonymous access</th><th>Root directory listing</th></tr>')
 		for e in enumerate(p[1]):
 			ip = ia.ip_address(e[1][0])
@@ -54,7 +83,7 @@ for p in ep:
 				str(ip)))
 		f.write('</table>')
 
-		f.write('<p>')
+		f.write('<p style="text-align: center;">')
 		epp = enumerate(pages)
 		for pp in epp:
 			if p[0] != pp[0]:
@@ -63,8 +92,6 @@ for p in ep:
 				f.write('{} '.format(pp[0] + 1))
 		f.write('</p>')
 
-		f.write('<footer><p>Generated at {}</p></footer>'.format(dt))
-
-		f.write('</body></html>')
+		f.write(footer_template.format(dt=dt))
 
 con.close()
