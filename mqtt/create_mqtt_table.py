@@ -10,6 +10,6 @@ if len(sys.argv) != 2:
 con = sqlite3.connect(sys.argv[1])
 cur = con.cursor()
 
-cur.execute("create table mqtt(ip primary key, plain, tls);")
+cur.execute("create table mqtt(ip primary key, plain);")
 
 con.close()
