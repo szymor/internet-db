@@ -72,16 +72,32 @@ for p in ep:
 		f.write(header_template.format(title=title, left=left, right=right))
 
 		f.write('<table>')
-		f.write('<tr><th>No.</th><th>IP address</th><th>Plain text (port 1883)</th><th>TLS (port 8883)</th></tr>')
+		f.write('<tr><th>No.</th><th>IP address</th><th>Plain text (port 1883)</th></tr>')
 		for e in enumerate(p[1]):
 			ip = ia.ip_address(e[1][0])
-			plain = e[1][1]
-			tls = e[1][2]
-			f.write('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+			rc = e[1][1]
+			rc_table = [
+				"full access",
+				"wrong protocol version",
+				"identifier rejected",
+				"server unavailable",
+				"bad username or password",
+				"not authorized"
+			]
+			if rc >= 0 and rc <= 5:
+				text = rc_table[rc]
+			else:
+				text = "???"
+			style = ""
+			if rc == 0:
+				style = ' style="background-color: #c0ffc0;"'
+			elif rc == 4 or rc == 5:
+				style = ' style="background-color: #ffc0c0;"'
+			f.write('<tr><td>{}</td><td>{}</td><td{}>{}</td></tr>'.format(
 				e[0] + 1 + p[0] * pagesize,
 				str(ip),
-				"yes" if plain == 1 else "no",
-				"yes" if tls == 1 else "no"))
+				style,
+				text))
 		f.write('</table>')
 
 		f.write('<p style="text-align: center;">')
