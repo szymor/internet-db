@@ -34,7 +34,7 @@ def check_single_ip(cur, ip):
 		return
 	mqttc.loop(5.0)
 	print("Timeout error.")
-	cur.execute(f"update mqtt set plain=-2 where ip={int(ip)};")
+	cur.execute(f"update mqtt set plain=-2 where ip={int(ip)} and plain is null;")
 	con.commit()
 	mqttc.disconnect()
 
@@ -49,7 +49,6 @@ if not os.path.exists(sys.argv[1]):
 con = sqlite3.connect(sys.argv[1])
 cur = con.cursor()
 
-# modify the SQL statement if you want to update other records
 res = cur.execute("select ip from mqtt where plain is null;")
 for r in res.fetchall():
 	ip = ia.ip_address(r[0])
