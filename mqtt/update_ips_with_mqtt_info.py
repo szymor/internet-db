@@ -4,6 +4,7 @@ import ipaddress as ia
 import sqlite3
 import sys
 import os
+import time
 
 import paho.mqtt.client as mqtt
 
@@ -13,6 +14,12 @@ def on_connect(client, userdata, flags, rc):
 	client.disconnect()
 	ip = int(userdata)
 	cur.execute(f"update mqtt set plain={rc} where ip={ip};")
+	con.commit()
+
+def on_connect_fail(client, userdata):
+	print("Not connected.")
+	ip = int(userdata)
+	cur.execute(f"update mqtt set plain=-3 where ip={ip};")
 	con.commit()
 
 def check_single_ip(cur, ip):
@@ -25,12 +32,11 @@ def check_single_ip(cur, ip):
 		cur.execute(f"update mqtt set plain=-1 where ip={int(ip)};")
 		con.commit()
 		return
-	try:
-		mqttc.loop_forever()
-	except:
-		print("Unexpected processing error.")
-		cur.execute(f"update mqtt set plain=-2 where ip={int(ip)};")
-		con.commit()
+	mqttc.loop(5.0)
+	print("Timeout error.")
+	cur.execute(f"update mqtt set plain=-2 where ip={int(ip)};")
+	con.commit()
+	mqttc.disconnect()
 
 if len(sys.argv) != 2:
 	print("Syntax: {} <db file>".format(sys.argv[0]))
