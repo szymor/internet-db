@@ -46,7 +46,7 @@ if not os.path.exists(sys.argv[1]):
 con = sqlite3.connect(sys.argv[1])
 cur = con.cursor()
 
-res = cur.execute("select * from mqtt order by ip;")
+res = cur.execute("select * from mqtt where plain >= 0 order by ip;")
 records = res.fetchall()
 
 os.mkdir(sys.argv[2])
