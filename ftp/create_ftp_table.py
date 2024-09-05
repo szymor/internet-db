@@ -10,6 +10,6 @@ if len(sys.argv) != 2:
 con = sqlite3.connect(sys.argv[1])
 cur = con.cursor()
 
-cur.execute("create table ftp(ip primary key, anon);")
+cur.execute("create table ftp(ip primary key, anon, timestamp, welcome text, listing text, comments text);")
 
 con.close()

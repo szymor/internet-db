@@ -2,6 +2,7 @@
 
 import ipaddress as ia
 import sqlite3
+import html
 import sys
 import os
 
@@ -48,7 +49,7 @@ cur = con.cursor()
 
 os.mkdir(sys.argv[2])
 
-res = cur.execute("select * from ftp where anon >= 0 order by ip;")
+res = cur.execute("select * from ftp where anon >= 0 order by length(listing) desc;")
 records = res.fetchall()
 
 dt = datetime.now().ctime()
@@ -72,15 +73,26 @@ for p in ep:
 		f.write(header_template.format(title=title, left=left, right=right))
 
 		f.write('<table>')
-		f.write('<tr><th>No.</th><th>IP address</th><th>Anonymous access</th><th>Root directory listing</th></tr>')
+		f.write('<tr><th>No.</th><th>IP address</th><th>Anonymous</th><th>Banner</th><th>Listing</th></tr>')
 		for e in enumerate(p[1]):
 			ip = ia.ip_address(e[1][0])
 			anon = e[1][1]
-			f.write('<tr><td>{}</td><td>{}</td><td>{}</td><td><a href="listing/listing_{}.txt">TXT</a></td></tr>'.format(
+			banner = e[1][3]
+			if banner is None:
+				banner = "&lt;none&gt;"
+			else:
+				banner = html.escape(banner)
+			listing = e[1][4]
+			if listing is None:
+				listing = "&lt;none&gt;"
+			else:
+				listing = html.escape(listing)
+			f.write('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
 				e[0] + 1 + p[0] * pagesize,
 				str(ip),
 				"yes" if anon == 1 else "no",
-				str(ip)))
+				banner,
+				listing))
 		f.write('</table>')
 
 		f.write('<p style="text-align: center;">')
