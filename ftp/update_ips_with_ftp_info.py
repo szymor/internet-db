@@ -35,12 +35,12 @@ def check_single_ip(cur, ip):
 	try:
 		ret = ftp.login()
 	except error_perm:
-		cur.execute(f"update ftp set anon=0, timestamp={ti}, welcome='{ftp.welcome}' where ip={i};")
+		cur.execute(f"update ftp set anon=0, timestamp={ti}, welcome=? where ip={i};", (ftp.welcome, ))
 		print("No anonymous login.")
 		opt_quit(ftp)
 		return
 	except:
-		cur.execute(f"update ftp set anon=-2, timestamp={ti}, welcome='{ftp.welcome}' where ip={i};")
+		cur.execute(f"update ftp set anon=-2, timestamp={ti}, welcome=? where ip={i};", (ftp.welcome, ))
 		print("Login failed unexpectedly.")
 		opt_quit(ftp)
 		return
@@ -51,14 +51,14 @@ def check_single_ip(cur, ip):
 		try:
 			ftp.retrlines("LIST", callback=list_callback)
 		except:
-			cur.execute(f"update ftp set anon=1, timestamp={ti}, welcome='{ftp.welcome}', listing='<error>' where ip={i};")
+			cur.execute(f"update ftp set anon=1, timestamp={ti}, welcome=?, listing='<error>' where ip={i};", (ftp.welcome, ))
 			print("Cannot retrieve root directory listing.")
 			opt_quit(ftp)
 			return
-		cur.execute(f"update ftp set anon=1, timestamp={ti}, welcome='{ftp.welcome}', listing='{list}' where ip={i};")
+		cur.execute(f"update ftp set anon=1, timestamp={ti}, welcome=?, listing=? where ip={i};", (ftp.welcome, list))
 		print("Anonymous access available.")
 	else:
-		cur.execute(f"update ftp set anon=0, timestamp={ti}, welcome='{ftp.welcome}', listing='<rsp_error>' where ip={i};")
+		cur.execute(f"update ftp set anon=0, timestamp={ti}, welcome=?, listing='<rsp_error>' where ip={i};", (ftp.welcome, ))
 		print("Unexpected response.")
 	opt_quit(ftp)
 
