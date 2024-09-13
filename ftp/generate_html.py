@@ -32,6 +32,18 @@ footer_template = """
 <footer>
 <p style="text-align: center;">by vamastah, generated on {dt}</p>
 </footer>
+<script>
+const evenRows = document.querySelectorAll('tr:nth-child(even)');
+
+evenRows.forEach(row => {{
+  row.addEventListener('click', () => {{
+    const nextRow = row.nextElementSibling;
+    if (nextRow) {{
+      nextRow.hidden = !nextRow.hidden;
+    }}
+  }});
+}});
+</script>
 </body>
 </html>
 """
@@ -73,8 +85,9 @@ for p in ep:
 		f.write(header_template.format(title=title, left=left, right=right))
 
 		f.write('<table>')
-		f.write('<tr><th>No.</th><th>IP address</th><th>Anonymous</th><th>Banner</th><th>Listing</th></tr>')
+		f.write('<tr><th>No.</th><th>IP address</th><th>Anonymous</th><th>Banner</th></tr>')
 		for e in enumerate(p[1]):
+			# first row
 			ip = ia.ip_address(e[1][0])
 			anon = e[1][1]
 			banner = e[1][3]
@@ -87,12 +100,13 @@ for p in ep:
 				listing = "&lt;none&gt;"
 			else:
 				listing = html.escape(listing)
-			f.write('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+			f.write('<tr><td>{}</td><td>{}</td><td>{}</td><td style="text-align: left; font-family: monospace; white-space: pre-wrap;">{}</td></tr>'.format(
 				e[0] + 1 + p[0] * pagesize,
 				str(ip),
 				"yes" if anon == 1 else "no",
-				banner,
-				listing))
+				banner))
+			# second row
+			f.write(f'<tr hidden><td colspan="4" style="text-align: left; font-family: monospace; white-space: pre-wrap;">{listing}</td></tr>')
 		f.write('</table>')
 
 		f.write('<p style="text-align: center;">')
