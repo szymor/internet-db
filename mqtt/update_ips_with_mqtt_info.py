@@ -42,7 +42,10 @@ def check_single_ip(cur, ip):
 		cur.execute(f"update mqtt set rc=-1, timestamp={ti} where ip={int(ip)};")
 		con.commit()
 		return
-	mqttc.loop(1.0)
+	try:
+		mqttc.loop(1.0)
+	except TimeoutError:
+		pass
 	ti = get_timestamp()
 	cur.execute(f"update mqtt set rc=-2, timestamp={ti} where ip={int(ip)} and rc is null;")
 	con.commit()
