@@ -6,6 +6,7 @@ import sys
 import os
 import time
 import datetime
+import struct
 
 import paho.mqtt.client as mqtt
 
