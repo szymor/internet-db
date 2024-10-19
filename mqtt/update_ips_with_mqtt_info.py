@@ -37,12 +37,30 @@ def check_single_ip(cur, ip):
 	mqttc.on_connect = on_connect
 	try:
 		mqttc.connect(str(ip), 1883)
-	except:
-		print("Unexpected connection error.")
+	except TimeoutError:
+		print("Connection timeout error.")
 		ti = get_timestamp()
-		cur.execute(f"update mqtt set rc=-1, timestamp={ti} where ip={int(ip)};")
+		cur.execute(f"update mqtt set rc=-5, timestamp={ti} where ip={int(ip)};")
 		con.commit()
 		return
+	except ConnectionRefusedError:
+		print("Connection refused.")
+		ti = get_timestamp()
+		cur.execute(f"update mqtt set rc=-6, timestamp={ti} where ip={int(ip)};")
+		con.commit()
+		return
+	except OSError as e:
+		print("OS Error:", e)
+		ti = get_timestamp()
+		cur.execute(f"update mqtt set rc=-7, timestamp={ti} where ip={int(ip)};")
+		con.commit()
+		return
+#	except:
+#		print("Unexpected connection error.")
+#		ti = get_timestamp()
+#		cur.execute(f"update mqtt set rc=-1, timestamp={ti} where ip={int(ip)};")
+#		con.commit()
+#		return
 	try:
 		mqttc.loop(1.0)
 	except struct.error:
@@ -50,6 +68,7 @@ def check_single_ip(cur, ip):
 		ti = get_timestamp()
 		cur.execute(f"update mqtt set rc=-4, timestamp={ti} where ip={int(ip)};")
 		con.commit()
+		return
 	except TimeoutError:
 		print("Unexpected timeout error.")
 		pass
