@@ -33,6 +33,9 @@ def on_connect_fail(client, userdata):
 	con.commit()
 
 def check_single_ip(cur, ip):
+	# reset record state
+	cur.execute(f"update mqtt set rc=null, timestamp=null where ip={int(ip)};")
+
 	mqttc = mqtt.Client(userdata=ip)
 	mqttc.on_connect = on_connect
 	try:
