@@ -62,7 +62,7 @@ def check_single_ip(cur, ip):
 		print("Unexpected response.")
 	opt_quit(ftp)
 
-if len(sys.argv) != 2:
+if len(sys.argv) < 2:
 	print("Syntax: {} <db file>".format(sys.argv[0]))
 	exit(1)
 
@@ -73,8 +73,12 @@ if not os.path.exists(sys.argv[1]):
 con = sqlite3.connect(sys.argv[1])
 cur = con.cursor()
 
-# modify the SQL statement if you want to update other records
-res = cur.execute("select ip from ftp where anon is null;")
+resstr = "select ip from ftp where anon is null;"
+if len(sys.argv) == 4:
+	resstr = f"select ip from (select ip, row_number() over() as rn from ftp where anon is null) where rn >= {sys.argv[2]} and rn <= {sys.argv[3]};"
+
+print(resstr)
+res = cur.execute(resstr)
 for r in res.fetchall():
 	ip = ia.ip_address(r[0])
 	print(ip, "...", sep='')
