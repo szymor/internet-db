@@ -79,8 +79,9 @@ if len(sys.argv) == 4:
 
 print(resstr)
 res = cur.execute(resstr)
+resfa = res.fetchall()
 input("Press any key to start...")
-for r in res.fetchall():
+for r in resfa:
 	ip = ia.ip_address(r[0])
 	print(ip, "...", sep='')
 	check_single_ip(cur, ip)
