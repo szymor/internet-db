@@ -10,6 +10,24 @@ import os
 from ftplib import FTP
 from ftplib import error_perm
 
+def exexec(cur, *args):
+	err = True
+	while err:
+		try:
+			cur.execute(*args)
+			err = False
+		except sqlite3.OperationalError:
+			print("Locked?")
+
+def excomm(con):
+	err = True
+	while err:
+		try:
+			con.commit()
+			err = False
+		except sqlite3.OperationalError:
+			print("Locked commit?")
+
 def opt_quit(ftp):
     try:
         ftp.quit()
@@ -29,18 +47,18 @@ def check_single_ip(cur, ip):
 	try:
 		ftp = FTP(str(ip), timeout=5)
 	except:
-		cur.execute(f"update ftp set anon=-1, timestamp={ti} where ip={i};")
+		exexec(cur, f"update ftp set anon=-1, timestamp={ti} where ip={i};")
 		print("Connection failed unexpectedly.")
 		return
 	try:
 		ret = ftp.login()
 	except error_perm:
-		cur.execute(f"update ftp set anon=0, timestamp={ti}, welcome=? where ip={i};", (ftp.welcome, ))
+		exexec(cur, f"update ftp set anon=0, timestamp={ti}, welcome=? where ip={i};", (ftp.welcome, ))
 		print("No anonymous login.")
 		opt_quit(ftp)
 		return
 	except:
-		cur.execute(f"update ftp set anon=-2, timestamp={ti}, welcome=? where ip={i};", (ftp.welcome, ))
+		exexec(cur, f"update ftp set anon=-2, timestamp={ti}, welcome=? where ip={i};", (ftp.welcome, ))
 		print("Login failed unexpectedly.")
 		opt_quit(ftp)
 		return
@@ -51,14 +69,14 @@ def check_single_ip(cur, ip):
 		try:
 			ftp.retrlines("LIST", callback=list_callback)
 		except:
-			cur.execute(f"update ftp set anon=1, timestamp={ti}, welcome=?, listing='<error>' where ip={i};", (ftp.welcome, ))
+			exexec(cur, f"update ftp set anon=1, timestamp={ti}, welcome=?, listing='<error>' where ip={i};", (ftp.welcome, ))
 			print("Cannot retrieve root directory listing.")
 			opt_quit(ftp)
 			return
-		cur.execute(f"update ftp set anon=1, timestamp={ti}, welcome=?, listing=? where ip={i};", (ftp.welcome, list))
+		exexec(cur, f"update ftp set anon=1, timestamp={ti}, welcome=?, listing=? where ip={i};", (ftp.welcome, list))
 		print("Anonymous access available.")
 	else:
-		cur.execute(f"update ftp set anon=0, timestamp={ti}, welcome=?, listing='<rsp_error>' where ip={i};", (ftp.welcome, ))
+		exexec(cur, f"update ftp set anon=0, timestamp={ti}, welcome=?, listing='<rsp_error>' where ip={i};", (ftp.welcome, ))
 		print("Unexpected response.")
 	opt_quit(ftp)
 
@@ -85,7 +103,7 @@ for r in resfa:
 	ip = ia.ip_address(r[0])
 	print(ip, "...", sep='')
 	check_single_ip(cur, ip)
-	con.commit()
+	excomm(con)
 
 print("Update finished.")
 con.close()
