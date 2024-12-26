@@ -46,7 +46,7 @@ if not os.path.exists(sys.argv[1]):
 con = sqlite3.connect(sys.argv[1])
 cur = con.cursor()
 
-res = cur.execute("select * from mqtt where rc >= 0 order by rc;")
+res = cur.execute("select * from mqtt where rc >= 0 or rc = -4 order by rc;")
 records = res.fetchall()
 
 os.mkdir(sys.argv[2])
@@ -86,13 +86,11 @@ for p in ep:
 			]
 			if rc >= 0 and rc <= 5:
 				text = rc_table[rc]
+			elif rc == -4:
+				text = "struct error (?)"
 			else:
-				text = "???"
+				text = f"RC{rc}"
 			style = ""
-#			if rc == 0:
-#				style = ' style="background-color: #c0ffc0;"'
-#			elif rc == 4 or rc == 5:
-#				style = ' style="background-color: #ffc0c0;"'
 			f.write('<tr><td>{}</td><td>{}</td><td{}>{}</td></tr>'.format(
 				e[0] + 1 + p[0] * pagesize,
 				str(ip),
